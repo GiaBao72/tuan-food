@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useOrderStore } from '../../store/useOrderStore'
 import { OrderCard } from '../../components/kitchen/OrderCard'
 import type { OrderStatus } from '../../types'
-
-const CHANNEL = 'tuan-food-orders'
 
 const STATUS_TABS: { key: OrderStatus | 'all'; label: string }[] = [
   { key: 'all',        label: 'Tất cả'      },
@@ -14,33 +12,54 @@ const STATUS_TABS: { key: OrderStatus | 'all'; label: string }[] = [
 ]
 
 export default function KitchenApp() {
-  const { orders, updateStatus, toggleItemDone } = useOrderStore()
+  const { orders, loading, fetchOrders, updateStatus, toggleItemDone } = useOrderStore()
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all')
-  const [pulse, setPulse] = useState(false)
+  const [newAlert, setNewAlert] = useState(false)
+  const prevCountRef = useRef(0)
 
+  // Fetch lần đầu + poll mỗi 10 giây
   useEffect(() => {
-    let ch: BroadcastChannel | null = null
-    try {
-      ch = new BroadcastChannel(CHANNEL)
-      ch.onmessage = () => setPulse(p => !p)
-    } catch { /* noop */ }
-    return () => ch?.close()
+    fetchOrders()
+    const interval = setInterval(fetchOrders, 10000)
+    return () => clearInterval(interval)
   }, [])
 
-  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  // Phát hiện đơn mới
+  useEffect(() => {
+    const newCount = orders.filter(o => o.status === 'new').length
+    if (prevCountRef.current > 0 && newCount > prevCountRef.current) {
+      setNewAlert(true)
+      setTimeout(() => setNewAlert(false), 5000)
+    }
+    prevCountRef.current = newCount
+  }, [orders])
 
+  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
   const countOf = (s: OrderStatus | 'all') =>
     s === 'all' ? orders.length : orders.filter(o => o.status === s).length
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* New order alert */}
+      {newAlert && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-olive-700 text-white px-6 py-3 rounded-2xl shadow-xl font-bold text-sm animate-bounce">
+          🔔 Có đơn mới!
+        </div>
+      )}
+
       <header className="bg-olive-700 text-white px-4 py-3 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <h1 className="font-bold text-lg">🍳 Bếp NutriKitchen</h1>
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${pulse ? 'bg-green-400' : 'bg-green-300'} transition-colors`} />
+          <div className="flex items-center gap-3">
+            {loading && <span className="text-xs opacity-60">Đang tải...</span>}
             <span className="text-xs opacity-80">{orders.length} đơn</span>
-            <a href="#/" className="text-xs opacity-70 hover:opacity-100 ml-2">← Đặt hàng</a>
+            <button
+              onClick={fetchOrders}
+              className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded-lg transition-colors"
+            >
+              ↻ Làm mới
+            </button>
+            <a href="#/" className="text-xs opacity-70 hover:opacity-100">← Đặt hàng</a>
           </div>
         </div>
       </header>
@@ -73,12 +92,17 @@ export default function KitchenApp() {
           <div className="text-center py-16 text-gray-400">
             <p className="text-4xl mb-3">🍽️</p>
             <p className="font-medium">Chưa có đơn hàng nào</p>
-            <p className="text-sm mt-1">Đơn mới sẽ hiển thị tại đây</p>
+            <p className="text-sm mt-1">Tự động cập nhật mỗi 10 giây</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
             {filtered.map(order => (
-              <OrderCard key={order.id} order={order} onUpdateStatus={updateStatus} onToggleItemDone={toggleItemDone} />
+              <OrderCard
+                key={order.id}
+                order={order}
+                onUpdateStatus={updateStatus}
+                onToggleItemDone={toggleItemDone}
+              />
             ))}
           </div>
         )}
