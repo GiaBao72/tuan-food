@@ -26,6 +26,7 @@ export function Step2Menu({
   const pkgObj = PACKAGES.find(p => p.key === pkg)!
   const [activeDay, setActiveDay] = useState(0)
   const [activeSlot, setActiveSlot] = useState<MealSlot>('lunch')
+  const [page, setPage] = useState(0)
 
   const health = healthCheck(profile.goal, profile.weight, '', pkgObj.days)
 
@@ -117,7 +118,7 @@ export function Step2Menu({
       <div className="flex gap-2">
         {MEAL_SLOTS.map(s => (
           <button key={s.key}
-            onClick={() => setActiveSlot(s.key)}
+            onClick={() => { setActiveSlot(s.key); setPage(0) }}
             className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors ${
               activeSlot === s.key ? 'bg-olive-500 text-white border-olive-500' : 'bg-cream-white text-olive-600 border-cream-dark'
             }`}
@@ -129,7 +130,7 @@ export function Step2Menu({
       </div>
 
       <div className="space-y-2">
-        {getScaledItems(activeSlot).map(item => (
+        {getScaledItems(activeSlot).slice(page * 5, page * 5 + 5).map(item => (
           <FoodCard
             key={item.id}
             item={item}
@@ -141,6 +142,26 @@ export function Step2Menu({
             }
           />
         ))}
+      </div>
+
+      <div className="flex justify-between items-center mt-2">
+        <button
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          disabled={page === 0}
+          className="px-4 py-2 rounded-xl text-sm font-medium border border-cream-dark text-olive-700 bg-cream-light disabled:opacity-40 transition-colors"
+        >
+          ← Trước
+        </button>
+        <span className="text-xs text-olive-600">
+          {page * 5 + 1}–{Math.min(page * 5 + 5, getScaledItems(activeSlot).length)} / {getScaledItems(activeSlot).length}
+        </span>
+        <button
+          onClick={() => setPage(p => p + 1)}
+          disabled={(page + 1) * 5 >= getScaledItems(activeSlot).length}
+          className="px-4 py-2 rounded-xl text-sm font-medium border border-cream-dark text-olive-700 bg-cream-light disabled:opacity-40 transition-colors"
+        >
+          Sau →
+        </button>
       </div>
     </div>
   )
