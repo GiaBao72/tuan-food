@@ -45,7 +45,7 @@ export default function CustomerApp() {
           >
             Đặt thêm
           </button>
-          <a href="/kitchen" className="block text-sm text-olive-400 hover:text-olive-600 underline mt-2">
+          <a href="#/kitchen" className="block text-sm text-olive-400 hover:text-olive-600 underline mt-2">
             Xem giao diện bếp
           </a>
         </div>
@@ -60,7 +60,7 @@ export default function CustomerApp() {
       <div className="max-w-lg mx-auto px-4 pt-6 pb-28">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-olive-800">NutriKitchen</h1>
-          <a href="/kitchen" className="text-xs text-olive-400 hover:text-olive-600">→ Bếp</a>
+          <a href="#/kitchen" className="text-xs text-olive-400 hover:text-olive-600">→ Bếp</a>
         </div>
 
         <StepBar step={step} />

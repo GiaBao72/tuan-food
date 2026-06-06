@@ -40,7 +40,7 @@ export default function KitchenApp() {
           <div className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${pulse ? 'bg-green-400' : 'bg-green-300'} transition-colors`} />
             <span className="text-xs opacity-80">{orders.length} đơn</span>
-            <a href="/" className="text-xs opacity-70 hover:opacity-100 ml-2">← Đặt hàng</a>
+            <a href="#/" className="text-xs opacity-70 hover:opacity-100 ml-2">← Đặt hàng</a>
           </div>
         </div>
       </header>
