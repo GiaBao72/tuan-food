@@ -11,7 +11,7 @@ interface OrderState {
   toggleItemDone: (orderId: number, itemId: string) => Promise<void>
 }
 
-export const useOrderStore = create<OrderState>()((set, get) => ({
+export const useOrderStore = create<OrderState>()((set, _get) => ({
   orders: [],
   loading: false,
 
