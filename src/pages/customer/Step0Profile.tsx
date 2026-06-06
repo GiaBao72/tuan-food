@@ -1,5 +1,5 @@
 import { useProfileStore } from '../../store/useProfileStore'
-import { calcBMI, bmiInfo } from '../../utils/nutrition'
+import { calcBMI } from '../../utils/nutrition'
 import { ACTIVITY } from '../../data/activity'
 import type { Goal, ActivityKey } from '../../types'
 
@@ -12,7 +12,6 @@ const GOAL_OPTIONS: { key: Goal; icon: string; label: string; desc: string }[] =
 export function Step0Profile() {
   const { profile, setProfile } = useProfileStore()
   const bmi = calcBMI(profile.weight, profile.height)
-  const info = bmiInfo(bmi)
 
   const field = (label: string, key: keyof typeof profile, type = 'text', placeholder = '') => (
     <div>
