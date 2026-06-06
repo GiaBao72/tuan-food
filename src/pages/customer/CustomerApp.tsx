@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { StepBar } from '../../components/customer/StepBar'
 import { BottomNav } from '../../components/customer/BottomNav'
+import { LoginScreen } from '../../components/customer/LoginScreen'
 import { Step0Profile } from './Step0Profile'
 import { Step1TDEE } from './Step1TDEE'
 import { Step2Menu } from './Step2Menu'
@@ -20,9 +21,12 @@ export default function CustomerApp() {
   const [note, setNote] = useState('')
   const [done, setDone] = useState(false)
 
-  const { profile, computeTDEE } = useProfileStore()
+  const { profile, isLoggedIn, logout, computeTDEE } = useProfileStore()
 
-  const isStep0Valid = !!profile.phone && !!profile.age && !!profile.weight && !!profile.height
+  // Chưa đăng nhập → màn hình nhập SĐT
+  if (!isLoggedIn) return <LoginScreen />
+
+  const isStep0Valid = !!profile.age && !!profile.weight && !!profile.height
   const pkgObj = PACKAGES.find(p => p.key === pkg)!
 
   const handleNext = () => {
@@ -60,7 +64,10 @@ export default function CustomerApp() {
       <div className="max-w-lg mx-auto px-4 pt-6 pb-28">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-olive-800">NutriKitchen</h1>
-          <a href="#/kitchen" className="text-xs text-olive-400 hover:text-olive-600">→ Bếp</a>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-olive-400">📱 {profile.phone}</span>
+            <button onClick={() => { logout(); setStep(0) }} className="text-xs text-olive-400 hover:text-olive-600">Đăng xuất</button>
+          </div>
         </div>
 
         <StepBar step={step} />

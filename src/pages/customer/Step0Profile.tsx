@@ -29,21 +29,6 @@ export function Step0Profile() {
 
   return (
     <div className="space-y-5">
-      {/* Đăng nhập bằng SĐT */}
-      <div className="bg-olive-800 rounded-2xl p-4 text-white">
-        <p className="text-xs font-bold opacity-70 mb-2 uppercase tracking-widest">Số điện thoại khách hàng</p>
-        <input
-          type="tel"
-          value={profile.phone}
-          onChange={e => setProfile({ phone: e.target.value })}
-          placeholder="09xx xxx xxx"
-          className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-lg font-bold placeholder-white/40 outline-none focus:border-white/60 transition-colors"
-        />
-        {profile.phone && (
-          <p className="text-xs opacity-60 mt-1.5">ID khách: #{profile.phone}</p>
-        )}
-      </div>
-
       <h2 className="text-base font-bold text-olive-800">Thông tin cơ thể</h2>
 
       <div>
