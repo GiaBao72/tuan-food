@@ -9,12 +9,8 @@ interface Step1TDEEProps {
   onPkgChange: (k: PackageKey) => void
 }
 
-const GOAL_LABEL: Record<string, string> = {
-  lose: 'Giảm cân', maintain: 'Giữ cân', gain: 'Tăng cân'
-}
-
 export function Step1TDEE({ pkg, onPkgChange }: Step1TDEEProps) {
-  const { profile, tdee, tKcal, tKcalWeek, weekLogs, computeTDEE, addWeightLog } = useProfileStore()
+  const { profile, tdee, tKcal, weekLogs, computeTDEE, addWeightLog } = useProfileStore()
   const pkgObj = PACKAGES.find(p => p.key === pkg)!
 
   const handlePkgChange = (k: PackageKey) => {
@@ -22,13 +18,7 @@ export function Step1TDEE({ pkg, onPkgChange }: Step1TDEEProps) {
     computeTDEE(PACKAGES.find(p => p.key === k)!.days)
   }
 
-  const initWeight = weekLogs.length > 0
-    ? weekLogs[0].weight
-    : parseFloat(profile.weight) || 0
-
-  const adjLabel = profile.goal === 'lose' ? '−500 kcal/tuần'
-    : profile.goal === 'gain' ? '+400 kcal/tuần'
-    : 'giữ nguyên'
+  const initWeight = weekLogs.length > 0 ? weekLogs[0].weight : parseFloat(profile.weight) || 0
 
   return (
     <div className="space-y-5">

@@ -27,7 +27,7 @@ export function Step2Menu({
   const [activeDay, setActiveDay] = useState(0)
   const [activeSlot, setActiveSlot] = useState<MealSlot>('lunch')
 
-  const health = healthCheck(profile.goal, profile.weight, profile.targetWeight, pkgObj.days)
+  const health = healthCheck(profile.goal, profile.weight, '', pkgObj.days)
 
   const currentSel = (slot: MealSlot): string[] =>
     orderMode === 'single' ? singleSel[slot] : weekPlan[activeDay]?.[slot] ?? []

@@ -91,6 +91,7 @@ export function Step3Confirm({ pkg, orderMode, singleSel, weekPlan, note, onNote
       pkgSave,
       note,
       status: 'new' as const,
+      doneItems: [],
     }
     addOrder(order)
     onConfirmed()
