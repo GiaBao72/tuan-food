@@ -56,18 +56,9 @@ export function Step0Profile() {
         {field('Chiều cao (cm)', 'height', 'number', '170')}
       </div>
 
-      {bmi && info && (
-        <div className="rounded-xl p-3 flex items-center gap-3" style={{ backgroundColor: info.bg }}>
-          <span className="text-2xl">⚖️</span>
-          <div>
-            <p className="text-sm font-bold" style={{ color: info.color }}>BMI: {bmi} — {info.label}</p>
-            <p className="text-xs" style={{ color: info.color, opacity: 0.7 }}>
-              {bmi < 18.5 ? 'Cần tăng cân để đảm bảo sức khỏe'
-                : bmi < 23 ? 'Chỉ số lý tưởng, duy trì tốt!'
-                : bmi < 27.5 ? 'Nên điều chỉnh chế độ ăn uống'
-                : 'Cần giảm cân để cải thiện sức khỏe'}
-            </p>
-          </div>
+      {bmi && (
+        <div className="rounded-xl p-3 text-center bg-olive-50 border border-olive-200">
+          <p className="text-sm font-bold text-olive-800">BMI: {bmi}</p>
         </div>
       )}
 
