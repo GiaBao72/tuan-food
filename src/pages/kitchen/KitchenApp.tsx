@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
 import { useOrderStore } from '../../store/useOrderStore'
 import { OrderCard } from '../../components/kitchen/OrderCard'
+import { CustomerList } from '../../components/kitchen/CustomerList'
 import type { OrderStatus } from '../../types'
+
+type MainTab = 'orders' | 'customers'
 
 const STATUS_TABS: { key: OrderStatus | 'all'; label: string }[] = [
   { key: 'all',        label: 'Tất cả'      },
@@ -14,6 +17,7 @@ const STATUS_TABS: { key: OrderStatus | 'all'; label: string }[] = [
 export default function KitchenApp() {
   const { orders, loading, fetchOrders, updateStatus, toggleItemDone } = useOrderStore()
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all')
+  const [mainTab, setMainTab] = useState<MainTab>('orders')
   const [newAlert, setNewAlert] = useState(false)
   const prevCountRef = useRef(0)
 
@@ -65,46 +69,62 @@ export default function KitchenApp() {
       </header>
 
       <div className="max-w-5xl mx-auto px-4 pt-4">
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
-          {STATUS_TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                filter === tab.key
-                  ? 'bg-olive-600 text-white'
-                  : 'bg-white text-olive-700 border border-olive-200 hover:border-olive-400'
-              }`}
-            >
-              {tab.label}
-              {countOf(tab.key) > 0 && (
-                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                  filter === tab.key ? 'bg-white text-olive-700' : 'bg-olive-100 text-olive-600'
-                }`}>
-                  {countOf(tab.key)}
-                </span>
-              )}
+        {/* Main tabs */}
+        <div className="flex gap-2 mb-4">
+          {([['orders','🧾 Đơn hàng'], ['customers','👥 Khách hàng']] as [MainTab, string][]).map(([key, label]) => (
+            <button key={key} onClick={() => setMainTab(key)}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                mainTab === key ? 'bg-olive-600 text-white' : 'bg-white text-olive-700 border border-olive-200 hover:border-olive-400'
+              }`}>
+              {label}
             </button>
           ))}
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <p className="text-4xl mb-3">🍽️</p>
-            <p className="font-medium">Chưa có đơn hàng nào</p>
-            <p className="text-sm mt-1">Tự động cập nhật mỗi 10 giây</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
-            {filtered.map(order => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onUpdateStatus={updateStatus}
-                onToggleItemDone={toggleItemDone}
-              />
-            ))}
-          </div>
+        {mainTab === 'customers' ? <CustomerList /> : (
+          <>
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+              {STATUS_TABS.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    filter === tab.key
+                      ? 'bg-olive-600 text-white'
+                      : 'bg-white text-olive-700 border border-olive-200 hover:border-olive-400'
+                  }`}
+                >
+                  {tab.label}
+                  {countOf(tab.key) > 0 && (
+                    <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                      filter === tab.key ? 'bg-white text-olive-700' : 'bg-olive-100 text-olive-600'
+                    }`}>
+                      {countOf(tab.key)}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className="text-center py-16 text-gray-400">
+                <p className="text-4xl mb-3">🍽️</p>
+                <p className="font-medium">Chưa có đơn hàng nào</p>
+                <p className="text-sm mt-1">Tự động cập nhật mỗi 10 giây</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+                {filtered.map(order => (
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    onUpdateStatus={updateStatus}
+                    onToggleItemDone={toggleItemDone}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

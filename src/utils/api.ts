@@ -24,6 +24,10 @@ export const api = {
     })
   },
 
+  async getCustomers(): Promise<Response> {
+    return fetch(`${API_BASE}/customers`)
+  },
+
   async toggleItemDone(id: number, itemId: string): Promise<Response> {
     return fetch(`${API_BASE}/orders/${id}/done-items`, {
       method: 'PATCH',
