@@ -76,6 +76,22 @@ export function Step2Menu({
   const summaryKcal = summaryItems.reduce((sum, x) => sum + (x.scaled?.kcal ?? 0), 0)
   const summaryPrice = summaryItems.reduce((sum, x) => sum + (x.scaled?.price ?? 0), 0)
 
+  // Đề xuất 1 món/bữa cho 1 ngày, xoay vòng theo dayIdx để đa dạng giữa các ngày
+  const suggestDay = (dayIdx: number): DayPlan => ({
+    breakfast: MENU.breakfast.length ? [MENU.breakfast[dayIdx % MENU.breakfast.length].id] : [],
+    lunch:     MENU.lunch.length     ? [MENU.lunch[dayIdx % MENU.lunch.length].id]         : [],
+    dinner:    MENU.dinner.length    ? [MENU.dinner[dayIdx % MENU.dinner.length].id]        : [],
+  })
+
+  const autoFill = () => {
+    if (orderMode === 'single') {
+      onSingleSelChange(suggestDay(0))
+    } else {
+      const filled = weekPlan.map((day, i) => i < pkgObj.days ? suggestDay(i) : day)
+      onWeekPlanChange(filled)
+    }
+  }
+
   const toggleSingleItem = (slot: MealSlot, id: string) => {
     const current = singleSel[slot]
     const updated = current.includes(id) ? current.filter(x => x !== id) : [...current, id]
@@ -138,6 +154,13 @@ export function Step2Menu({
           </button>
         ))}
       </div>
+
+      <button
+        onClick={autoFill}
+        className="w-full py-2.5 rounded-xl text-sm font-semibold bg-olive-100 text-olive-700 border border-olive-300 hover:bg-olive-200 transition-colors"
+      >
+        ✨ Đề xuất thực đơn {orderMode === 'single' ? 'cho ngày này' : `cho cả ${pkgObj.days} ngày`}
+      </button>
 
       {orderMode === 'weekly' && (
         <div className="flex gap-1 overflow-x-auto pb-1">
