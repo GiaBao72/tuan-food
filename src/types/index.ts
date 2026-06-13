@@ -2,7 +2,7 @@ export type Goal = 'lose' | 'maintain' | 'gain'
 export type ActivityKey = 'sedentary' | 'light' | 'moderate' | 'active' | 'very'
 export type MealSlot = 'breakfast' | 'lunch' | 'dinner'
 export type OrderStatus = 'new' | 'confirmed' | 'delivering' | 'done'
-export type PackageKey = 'single' | 'week1' | 'week2'
+export type PackageKey = 'day1' | 'day5' | 'day20'
 
 export interface Ingredient {
   name: string
@@ -56,6 +56,7 @@ export interface Order {
   profile: UserProfile
   tdee: number
   tKcal: number
+  tier: string        // S/M/L/XL — mức menu cố định khách chọn
   pkg: PackageKey
   pkgDays: number
   pkgWeeks: number

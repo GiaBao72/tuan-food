@@ -6,6 +6,7 @@ import { MENU } from '../../data/menu'
 import { PACKAGES, MEAL_SLOTS, DAYS, MENU_TIERS } from '../../data/packages'
 import type { TierKey } from '../../data/packages'
 import { scaleItem, itemBaseKcal, healthCheck, suggestTier } from '../../utils/nutrition'
+import { vnd } from '../../utils/format'
 import type { DayPlan, MealSlot, PackageKey } from '../../types'
 
 interface Step2MenuProps {
@@ -51,6 +52,13 @@ export function Step2Menu({
 
   // Khẩu phần cố định theo size: mỗi món scale đúng budget slot của size,
   // không co giãn theo số món đã chọn. Chọn thêm món = cộng dồn.
+  const scaleForSlot = (slot: MealSlot, id: string) => {
+    const item = MENU[slot].find(m => m.id === id)
+    if (!item) return null
+    const base = itemBaseKcal(item)
+    return scaleItem(item, base > 0 ? getSlotKcal(slot) / base : 1)
+  }
+
   const getScaledItems = (slot: MealSlot) => {
     const slotKcal = getSlotKcal(slot)
     return MENU[slot].map(item => {
@@ -59,6 +67,14 @@ export function Step2Menu({
       return scaleItem(item, factor)
     })
   }
+
+  // Tóm tắt món đã chọn cho ngày đang xem (single hoặc ngày active)
+  const summaryDay: DayPlan = orderMode === 'single' ? singleSel : (weekPlan[activeDay] ?? { breakfast: [], lunch: [], dinner: [] })
+  const summaryItems = MEAL_SLOTS.flatMap(s =>
+    summaryDay[s.key].map(id => ({ slot: s.key, scaled: scaleForSlot(s.key, id) }))
+  ).filter(x => x.scaled)
+  const summaryKcal = summaryItems.reduce((sum, x) => sum + (x.scaled?.kcal ?? 0), 0)
+  const summaryPrice = summaryItems.reduce((sum, x) => sum + (x.scaled?.price ?? 0), 0)
 
   const toggleSingleItem = (slot: MealSlot, id: string) => {
     const current = singleSel[slot]
@@ -118,7 +134,7 @@ export function Step2Menu({
               orderMode === m ? 'bg-olive-600 text-white border-olive-600' : 'bg-cream-light text-olive-700 border-cream-dark'
             }`}
           >
-            {m === 'single' ? 'Đặt lẻ / thử' : 'Đặt theo tuần'}
+            {m === 'single' ? 'Đặt 1 ngày' : 'Đặt nhiều ngày'}
           </button>
         ))}
       </div>
@@ -185,6 +201,45 @@ export function Step2Menu({
         >
           Sau →
         </button>
+      </div>
+
+      {/* Tóm tắt món đã chọn */}
+      <div className="bg-olive-50 rounded-2xl p-4 border border-olive-100">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-olive-800">
+            🧾 Đã chọn{orderMode === 'weekly' ? ` — ${DAYS[activeDay]}` : ''}
+          </h3>
+          <span className="text-xs text-olive-500">{summaryItems.length} món</span>
+        </div>
+        {summaryItems.length === 0 ? (
+          <p className="text-xs text-olive-400 italic">Chưa chọn món nào cho {orderMode === 'weekly' ? DAYS[activeDay].toLowerCase() : 'ngày này'}.</p>
+        ) : (
+          <>
+            <div className="space-y-1.5">
+              {MEAL_SLOTS.map(s => {
+                const items = summaryItems.filter(x => x.slot === s.key)
+                if (items.length === 0) return null
+                return (
+                  <div key={s.key} className="text-xs">
+                    <span className="font-semibold text-olive-600">{s.icon} {s.label}:</span>
+                    <div className="ml-4 mt-0.5 space-y-0.5">
+                      {items.map((x, i) => (
+                        <div key={i} className="flex justify-between text-olive-700">
+                          <span>{x.scaled!.icon} {x.scaled!.name}</span>
+                          <span className="text-olive-500">{x.scaled!.kcal} kcal · {vnd(x.scaled!.price)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-olive-200 text-sm">
+              <span className="font-semibold text-olive-700">Tổng {orderMode === 'weekly' ? 'ngày' : ''}: <b>{summaryKcal} kcal</b></span>
+              <span className="font-bold text-olive-700">{vnd(summaryPrice)}</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

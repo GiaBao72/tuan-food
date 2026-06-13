@@ -16,10 +16,10 @@ const emptyDay = (): DayPlan => ({ breakfast: [], lunch: [], dinner: [] })
 
 export default function CustomerApp() {
   const [step, setStep] = useState(0)
-  const [pkg, setPkg] = useState<PackageKey>('single')
+  const [pkg, setPkg] = useState<PackageKey>('day1')
   const [orderMode, setOrderMode] = useState<'single' | 'weekly'>('single')
   const [singleSel, setSingleSel] = useState<DayPlan>(emptyDay())
-  const [weekPlan, setWeekPlan] = useState<DayPlan[]>(() => Array.from({ length: 14 }, emptyDay))
+  const [weekPlan, setWeekPlan] = useState<DayPlan[]>(() => Array.from({ length: 20 }, emptyDay))
   const [note, setNote] = useState('')
   const [done, setDone] = useState(false)
   const [tier, setTier] = useState<TierKey>('M')
