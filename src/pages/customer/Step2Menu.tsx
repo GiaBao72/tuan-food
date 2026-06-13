@@ -76,18 +76,22 @@ export function Step2Menu({
   const summaryKcal = summaryItems.reduce((sum, x) => sum + (x.scaled?.kcal ?? 0), 0)
   const summaryPrice = summaryItems.reduce((sum, x) => sum + (x.scaled?.price ?? 0), 0)
 
-  // Đề xuất 1 món/bữa cho 1 ngày, xoay vòng theo dayIdx để đa dạng giữa các ngày
-  const suggestDay = (dayIdx: number): DayPlan => ({
-    breakfast: MENU.breakfast.length ? [MENU.breakfast[dayIdx % MENU.breakfast.length].id] : [],
-    lunch:     MENU.lunch.length     ? [MENU.lunch[dayIdx % MENU.lunch.length].id]         : [],
-    dinner:    MENU.dinner.length    ? [MENU.dinner[dayIdx % MENU.dinner.length].id]        : [],
+  // Đề xuất ngẫu nhiên 1 món/bữa cho 1 ngày
+  const pickRandom = (slot: MealSlot): string[] => {
+    const items = MENU[slot]
+    return items.length ? [items[Math.floor(Math.random() * items.length)].id] : []
+  }
+  const suggestDay = (): DayPlan => ({
+    breakfast: pickRandom('breakfast'),
+    lunch:     pickRandom('lunch'),
+    dinner:    pickRandom('dinner'),
   })
 
   const autoFill = () => {
     if (orderMode === 'single') {
-      onSingleSelChange(suggestDay(0))
+      onSingleSelChange(suggestDay())
     } else {
-      const filled = weekPlan.map((day, i) => i < pkgObj.days ? suggestDay(i) : day)
+      const filled = weekPlan.map((day, i) => i < pkgObj.days ? suggestDay() : day)
       onWeekPlanChange(filled)
     }
   }
