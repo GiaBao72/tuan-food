@@ -22,7 +22,7 @@ interface Customer {
   orders: CustomerOrder[]
 }
 
-const PKG_LABEL: Record<string, string> = { day1: '1 Ngày', day5: '5 Ngày', day20: '20 Ngày' }
+const PKG_LABEL: Record<string, string> = { day1: '1 Ngày', day5: '5 Ngày', day10: '10 Ngày' }
 const STATUS_LABEL: Record<string, string> = { new: 'Mới', confirmed: 'Xác nhận', delivering: 'Đang giao', done: 'Xong' }
 const STATUS_COLOR: Record<string, string> = { new: 'bg-blue-100 text-blue-700', confirmed: 'bg-amber-100 text-amber-700', delivering: 'bg-orange-100 text-orange-700', done: 'bg-olive-100 text-olive-700' }
 const GOAL_LABEL: Record<string, string> = { lose: 'Giảm cân', maintain: 'Giữ cân', gain: 'Tăng cân' }

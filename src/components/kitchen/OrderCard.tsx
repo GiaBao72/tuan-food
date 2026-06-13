@@ -23,7 +23,7 @@ const GOAL_LABEL: Record<string, string> = {
   lose: 'Giảm cân', maintain: 'Giữ cân', gain: 'Tăng cân',
 }
 const PKG_LABEL: Record<string, string> = {
-  day1: '1 Ngày', day5: '5 Ngày', day20: '20 Ngày',
+  day1: '1 Ngày', day5: '5 Ngày', day10: '10 Ngày',
 }
 const SLOT_LABEL: Record<MealSlot, string> = {
   breakfast: 'Sáng', lunch: 'Trưa', dinner: 'Tối',

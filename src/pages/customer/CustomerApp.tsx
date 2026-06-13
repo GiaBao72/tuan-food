@@ -19,7 +19,7 @@ export default function CustomerApp() {
   const [pkg, setPkg] = useState<PackageKey>('day1')
   const [orderMode, setOrderMode] = useState<'single' | 'weekly'>('single')
   const [singleSel, setSingleSel] = useState<DayPlan>(emptyDay())
-  const [weekPlan, setWeekPlan] = useState<DayPlan[]>(() => Array.from({ length: 20 }, emptyDay))
+  const [weekPlan, setWeekPlan] = useState<DayPlan[]>(() => Array.from({ length: 10 }, emptyDay))
   const [note, setNote] = useState('')
   const [done, setDone] = useState(false)
   const [tier, setTier] = useState<TierKey>('M')

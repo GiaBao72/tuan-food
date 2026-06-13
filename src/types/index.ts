@@ -2,7 +2,7 @@ export type Goal = 'lose' | 'maintain' | 'gain'
 export type ActivityKey = 'sedentary' | 'light' | 'moderate' | 'active' | 'very'
 export type MealSlot = 'breakfast' | 'lunch' | 'dinner'
 export type OrderStatus = 'new' | 'confirmed' | 'delivering' | 'done'
-export type PackageKey = 'day1' | 'day5' | 'day20'
+export type PackageKey = 'day1' | 'day5' | 'day10'
 
 export interface Ingredient {
   name: string

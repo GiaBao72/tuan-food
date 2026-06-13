@@ -13,7 +13,7 @@ export interface Package {
 export const PACKAGES: Package[] = [
   { key: 'day1',  label: '1 Ngày',  days: 1,  weeks: 0, discount: 0,    badge: null,   color: '#5c9448' },
   { key: 'day5',  label: '5 Ngày',  days: 5,  weeks: 0, discount: 0.05, badge: '-5%',  color: '#0ea5e9' },
-  { key: 'day20', label: '20 Ngày', days: 20, weeks: 0, discount: 0.10, badge: '-10%', color: '#7c3aed' },
+  { key: 'day10', label: '10 Ngày', days: 10, weeks: 0, discount: 0.10, badge: '-10%', color: '#7c3aed' },
 ]
 
 export type TierKey = 'S' | 'M' | 'L' | 'XL'
@@ -37,7 +37,7 @@ export const MEAL_SLOTS = [
   { key: 'dinner'    as const, label: 'Bữa Tối',   icon: '🌙', ratio: 0.35, time: '17-20h' },
 ]
 
-export const DAYS = Array.from({ length: 20 }, (_, i) => `Ngày ${i + 1}`)
+export const DAYS = Array.from({ length: 10 }, (_, i) => `Ngày ${i + 1}`)
 
 export const MACRO_TARGETS: Record<string, [number, number, number]> = {
   lose:     [0.40, 0.35, 0.25],
