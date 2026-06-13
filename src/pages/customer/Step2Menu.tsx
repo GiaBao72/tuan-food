@@ -3,8 +3,9 @@ import { useProfileStore } from '../../store/useProfileStore'
 import { FoodCard } from '../../components/customer/FoodCard'
 import { HealthBox } from '../../components/customer/HealthBox'
 import { MENU } from '../../data/menu'
-import { PACKAGES, MEAL_SLOTS, DAYS } from '../../data/packages'
-import { scaleItem, itemBaseKcal, healthCheck } from '../../utils/nutrition'
+import { PACKAGES, MEAL_SLOTS, DAYS, MENU_TIERS } from '../../data/packages'
+import type { TierKey } from '../../data/packages'
+import { scaleItem, itemBaseKcal, healthCheck, suggestTier } from '../../utils/nutrition'
 import type { DayPlan, MealSlot, PackageKey } from '../../types'
 
 interface Step2MenuProps {
@@ -28,6 +29,12 @@ export function Step2Menu({
   const [activeSlot, setActiveSlot] = useState<MealSlot>('lunch')
   const [page, setPage] = useState(0)
 
+  // Mức menu đề xuất: snap tKcal về mức cố định gần nhất (S/M/L/XL)
+  const suggested = suggestTier(tKcal ?? 1800)
+  const [tierKey, setTierKey] = useState<TierKey>(suggested.key)
+  const tier = MENU_TIERS.find(t => t.key === tierKey) ?? suggested
+  const tierKcal = tier.kcal
+
   const health = healthCheck(profile.goal, profile.weight, '', pkgObj.days)
 
   const currentSel = (slot: MealSlot): string[] =>
@@ -37,7 +44,7 @@ export function Step2Menu({
 
   const getSlotKcal = (slot: MealSlot) => {
     const slotObj = MEAL_SLOTS.find(s => s.key === slot)!
-    return Math.round((tKcal ?? 1800) * slotObj.ratio)
+    return Math.round(tierKcal * slotObj.ratio)
   }
 
   // Scale các món đã chọn: chia đều budget kcal của slot cho tổng base kcal chúng
@@ -86,6 +93,35 @@ export function Step2Menu({
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-olive-800">Chọn thực đơn</h2>
       <HealthBox check={health} />
+
+      <div>
+        <div className="flex items-baseline justify-between mb-2">
+          <label className="text-xs font-semibold text-olive-700">Mức thực đơn (kcal/ngày)</label>
+          <span className="text-[11px] text-olive-400">
+            Đề xuất theo TDEE: <b className="text-olive-600">{suggested.key}</b>
+          </span>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {MENU_TIERS.map(t => (
+            <button key={t.key}
+              onClick={() => setTierKey(t.key)}
+              className={`relative py-2 rounded-xl border-2 text-center transition-all ${
+                tierKey === t.key
+                  ? 'border-olive-500 bg-olive-50'
+                  : 'border-cream-dark bg-cream-white hover:border-olive-300'
+              }`}
+            >
+              {t.key === suggested.key && (
+                <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold text-white bg-olive-500 px-1.5 rounded-full">
+                  ✓
+                </span>
+              )}
+              <p className="font-bold text-sm text-olive-800">{t.key}</p>
+              <p className="text-[10px] text-olive-400">{t.kcal}</p>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="flex gap-2">
         {(['single', 'weekly'] as const).map(m => (

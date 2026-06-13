@@ -1,6 +1,7 @@
 import type { UserProfile, MenuItem, ScaledItem } from '../types'
 import { ACTIVITY } from '../data/activity'
-import { MACRO_TARGETS } from '../data/packages'
+import { MACRO_TARGETS, MENU_TIERS } from '../data/packages'
+import type { MenuTier } from '../data/packages'
 
 export function calcBMI(weight: string, height: string): number | null {
   const w = parseFloat(weight), h = parseFloat(height) / 100
@@ -52,6 +53,13 @@ export function scaleItem(item: MenuItem, factor: number): ScaledItem {
 
 export function getMacroTarget(goal: string): [number, number, number] {
   return MACRO_TARGETS[goal] ?? MACRO_TARGETS['maintain']
+}
+
+// Chọn mức menu cố định (S/M/L/XL) có kcal gần với tKcal nhất
+export function suggestTier(tKcal: number): MenuTier {
+  return MENU_TIERS.reduce((best, t) =>
+    Math.abs(t.kcal - tKcal) < Math.abs(best.kcal - tKcal) ? t : best
+  , MENU_TIERS[0])
 }
 
 export type HealthLevel = 'ok' | 'warn' | 'danger'

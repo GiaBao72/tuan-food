@@ -16,6 +16,21 @@ export const PACKAGES: Package[] = [
   { key: 'week2',  label: '2 Tuần',   days: 14, weeks: 2, discount: 0.05, badge: '-5%', color: '#0ea5e9' },
 ]
 
+export type TierKey = 'S' | 'M' | 'L' | 'XL'
+
+export interface MenuTier {
+  key: TierKey
+  kcal: number
+  label: string
+}
+
+export const MENU_TIERS: MenuTier[] = [
+  { key: 'S',  kcal: 1400, label: 'S — 1400 kcal'  },
+  { key: 'M',  kcal: 1800, label: 'M — 1800 kcal'  },
+  { key: 'L',  kcal: 2200, label: 'L — 2200 kcal'  },
+  { key: 'XL', kcal: 2800, label: 'XL — 2800 kcal' },
+]
+
 export const MEAL_SLOTS = [
   { key: 'breakfast' as const, label: 'Bữa Sáng', icon: '🌅', ratio: 0.25, time: '6-9h'   },
   { key: 'lunch'     as const, label: 'Bữa Trưa',  icon: '☀️', ratio: 0.40, time: '11-13h' },
