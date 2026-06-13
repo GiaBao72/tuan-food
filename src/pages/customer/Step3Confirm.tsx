@@ -1,6 +1,7 @@
 import { useProfileStore } from '../../store/useProfileStore'
 import { useOrderStore } from '../../store/useOrderStore'
-import { PACKAGES, MEAL_SLOTS } from '../../data/packages'
+import { PACKAGES, MEAL_SLOTS, MENU_TIERS } from '../../data/packages'
+import type { TierKey } from '../../data/packages'
 import { MENU } from '../../data/menu'
 import { scaleItem, itemBaseKcal } from '../../utils/nutrition'
 import { vnd } from '../../utils/format'
@@ -8,6 +9,7 @@ import type { DayPlan, MealSlot, PackageKey } from '../../types'
 
 interface Step3ConfirmProps {
   pkg: PackageKey
+  tier: TierKey
   orderMode: 'single' | 'weekly'
   singleSel: DayPlan
   weekPlan: DayPlan[]
@@ -16,11 +18,11 @@ interface Step3ConfirmProps {
   onConfirmed: () => void
 }
 
-function calcDayTotal(day: DayPlan, tKcal: number): number {
+function calcDayTotal(day: DayPlan, dayKcal: number): number {
   let total = 0
   const slots: MealSlot[] = ['breakfast', 'lunch', 'dinner']
   for (const slot of slots) {
-    const slotKcal = tKcal * MEAL_SLOTS.find(s => s.key === slot)!.ratio
+    const slotKcal = dayKcal * MEAL_SLOTS.find(s => s.key === slot)!.ratio
     for (const id of day[slot]) {
       const item = MENU[slot].find(m => m.id === id)
       if (item) {
@@ -33,7 +35,7 @@ function calcDayTotal(day: DayPlan, tKcal: number): number {
   return total
 }
 
-function DayMeals({ day, tKcal }: { day: DayPlan; tKcal: number }) {
+function DayMeals({ day, dayKcal }: { day: DayPlan; dayKcal: number }) {
   const slots: MealSlot[] = ['breakfast', 'lunch', 'dinner']
   const slotLabel: Record<MealSlot, string> = { breakfast: 'Sáng', lunch: 'Trưa', dinner: 'Tối' }
   return (
@@ -45,7 +47,7 @@ function DayMeals({ day, tKcal }: { day: DayPlan; tKcal: number }) {
             const item = MENU[slot].find(m => m.id === id)
             if (!item) return null
             const base = itemBaseKcal(item)
-            const slotKcal = tKcal * MEAL_SLOTS.find(s => s.key === slot)!.ratio
+            const slotKcal = dayKcal * MEAL_SLOTS.find(s => s.key === slot)!.ratio
             const factor = base > 0 ? slotKcal / base : 1
             const scaled = scaleItem(item, factor)
             return (
@@ -60,14 +62,16 @@ function DayMeals({ day, tKcal }: { day: DayPlan; tKcal: number }) {
   )
 }
 
-export function Step3Confirm({ pkg, orderMode, singleSel, weekPlan, note, onNoteChange, onConfirmed }: Step3ConfirmProps) {
+export function Step3Confirm({ pkg, tier, orderMode, singleSel, weekPlan, note, onNoteChange, onConfirmed }: Step3ConfirmProps) {
   const { profile, tdee, tKcal } = useProfileStore()
   const { addOrder } = useOrderStore()
   const pkgObj = PACKAGES.find(p => p.key === pkg)!
   const safeKcal = tKcal ?? 1800
+  const tierObj = MENU_TIERS.find(t => t.key === tier) ?? MENU_TIERS[1]
+  const dayKcal = tierObj.kcal
 
-  const singleTotal = calcDayTotal(singleSel, safeKcal)
-  const weeklyRaw = weekPlan.reduce((s, d) => s + calcDayTotal(d, safeKcal), 0)
+  const singleTotal = calcDayTotal(singleSel, dayKcal)
+  const weeklyRaw = weekPlan.reduce((s, d) => s + calcDayTotal(d, dayKcal), 0)
   const rawTotal = orderMode === 'single' ? singleTotal : weeklyRaw
   const disc = pkgObj.discount
   const pkgTotal = Math.round(rawTotal * (1 - disc))
@@ -110,14 +114,14 @@ export function Step3Confirm({ pkg, orderMode, singleSel, weekPlan, note, onNote
       {orderMode === 'single' ? (
         <div className="bg-cream-white rounded-2xl border border-cream-dark p-3">
           <p className="font-semibold text-olive-700 text-sm mb-2">Đơn lẻ:</p>
-          <DayMeals day={singleSel} tKcal={safeKcal} />
+          <DayMeals day={singleSel} dayKcal={dayKcal} />
         </div>
       ) : (
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {weekPlan.map((day, i) => (
             <div key={i} className="bg-cream-white rounded-xl border border-cream-dark p-3">
               <p className="font-semibold text-olive-700 text-xs mb-1">Ngày {i + 1}</p>
-              <DayMeals day={day} tKcal={safeKcal} />
+              <DayMeals day={day} dayKcal={dayKcal} />
             </div>
           ))}
         </div>

@@ -8,6 +8,8 @@ import { Step2Menu } from './Step2Menu'
 import { Step3Confirm } from './Step3Confirm'
 import { useProfileStore } from '../../store/useProfileStore'
 import { PACKAGES } from '../../data/packages'
+import type { TierKey } from '../../data/packages'
+import { suggestTier } from '../../utils/nutrition'
 import type { DayPlan, PackageKey } from '../../types'
 
 const emptyDay = (): DayPlan => ({ breakfast: [], lunch: [], dinner: [] })
@@ -20,6 +22,7 @@ export default function CustomerApp() {
   const [weekPlan, setWeekPlan] = useState<DayPlan[]>(() => Array.from({ length: 14 }, emptyDay))
   const [note, setNote] = useState('')
   const [done, setDone] = useState(false)
+  const [tier, setTier] = useState<TierKey>('M')
 
   const { profile, isLoggedIn, logout, computeTDEE } = useProfileStore()
 
@@ -30,7 +33,11 @@ export default function CustomerApp() {
   const pkgObj = PACKAGES.find(p => p.key === pkg)!
 
   const handleNext = () => {
-    if (step === 0) computeTDEE(pkgObj.days)
+    if (step === 0) {
+      computeTDEE(pkgObj.days)
+      const { tKcal } = useProfileStore.getState()
+      setTier(suggestTier(tKcal ?? 1800).key)
+    }
     setStep(s => Math.min(s + 1, 3))
   }
 
@@ -77,6 +84,8 @@ export default function CustomerApp() {
         {step === 2 && (
           <Step2Menu
             pkg={pkg}
+            tier={tier}
+            onTierChange={setTier}
             orderMode={orderMode}
             onOrderModeChange={setOrderMode}
             singleSel={singleSel}
@@ -88,6 +97,7 @@ export default function CustomerApp() {
         {step === 3 && (
           <Step3Confirm
             pkg={pkg}
+            tier={tier}
             orderMode={orderMode}
             singleSel={singleSel}
             weekPlan={weekPlan.slice(0, pkgObj.days)}

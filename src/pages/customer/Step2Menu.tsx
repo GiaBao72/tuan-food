@@ -10,6 +10,8 @@ import type { DayPlan, MealSlot, PackageKey } from '../../types'
 
 interface Step2MenuProps {
   pkg: PackageKey
+  tier: TierKey
+  onTierChange: (t: TierKey) => void
   orderMode: 'single' | 'weekly'
   onOrderModeChange: (m: 'single' | 'weekly') => void
   singleSel: DayPlan
@@ -19,7 +21,8 @@ interface Step2MenuProps {
 }
 
 export function Step2Menu({
-  pkg, orderMode, onOrderModeChange,
+  pkg, tier: tierKey, onTierChange,
+  orderMode, onOrderModeChange,
   singleSel, onSingleSelChange,
   weekPlan, onWeekPlanChange,
 }: Step2MenuProps) {
@@ -31,7 +34,6 @@ export function Step2Menu({
 
   // Mức menu đề xuất: snap tKcal về mức cố định gần nhất (S/M/L/XL)
   const suggested = suggestTier(tKcal ?? 1800)
-  const [tierKey, setTierKey] = useState<TierKey>(suggested.key)
   const tier = MENU_TIERS.find(t => t.key === tierKey) ?? suggested
   const tierKcal = tier.kcal
 
@@ -47,28 +49,13 @@ export function Step2Menu({
     return Math.round(tierKcal * slotObj.ratio)
   }
 
-  // Scale các món đã chọn: chia đều budget kcal của slot cho tổng base kcal chúng
-  // Món chưa chọn: preview với factor như thể chọn một mình
+  // Khẩu phần cố định theo size: mỗi món scale đúng budget slot của size,
+  // không co giãn theo số món đã chọn. Chọn thêm món = cộng dồn.
   const getScaledItems = (slot: MealSlot) => {
     const slotKcal = getSlotKcal(slot)
-    const selectedIds = currentSel(slot)
-
-    // Tổng base kcal của các món đang được chọn
-    const selectedItems = MENU[slot].filter(item => selectedIds.includes(item.id))
-    const totalSelectedBase = selectedItems.reduce((s, item) => s + itemBaseKcal(item), 0)
-
     return MENU[slot].map(item => {
       const base = itemBaseKcal(item)
-      let factor: number
-
-      if (selectedIds.includes(item.id) && totalSelectedBase > 0) {
-        // Chia budget slot theo tỉ lệ base kcal của từng món
-        factor = (slotKcal / totalSelectedBase)
-      } else {
-        // Preview: như thể chọn một mình
-        factor = base > 0 ? slotKcal / base : 1
-      }
-
+      const factor = base > 0 ? slotKcal / base : 1
       return scaleItem(item, factor)
     })
   }
@@ -104,7 +91,7 @@ export function Step2Menu({
         <div className="grid grid-cols-4 gap-2">
           {MENU_TIERS.map(t => (
             <button key={t.key}
-              onClick={() => setTierKey(t.key)}
+              onClick={() => onTierChange(t.key)}
               className={`relative py-2 rounded-xl border-2 text-center transition-all ${
                 tierKey === t.key
                   ? 'border-olive-500 bg-olive-50'
