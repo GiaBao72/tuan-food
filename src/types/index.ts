@@ -53,6 +53,7 @@ export interface UserProfile {
 export interface Order {
   id: number
   date: string
+  startDate: string   // ISO yyyy-mm-dd — ngày 1 của thực đơn
   profile: UserProfile
   tdee: number
   tKcal: number

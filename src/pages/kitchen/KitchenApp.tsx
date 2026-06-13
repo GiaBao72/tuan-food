@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useOrderStore } from '../../store/useOrderStore'
 import { OrderCard } from '../../components/kitchen/OrderCard'
 import { CustomerList } from '../../components/kitchen/CustomerList'
-import type { OrderStatus } from '../../types'
+import { dayFromStart, isoOf, dateLabel, todayISO } from '../../utils/format'
+import type { Order, OrderStatus } from '../../types'
 
 type MainTab = 'orders' | 'customers'
 
@@ -14,10 +15,18 @@ const STATUS_TABS: { key: OrderStatus | 'all'; label: string }[] = [
   { key: 'done',       label: 'Xong'        },
 ]
 
+// Các ngày ISO mà 1 đơn có suất ăn
+function orderDayISOs(o: Order): string[] {
+  const start = o.startDate ?? todayISO()
+  if (o.orderMode === 'single') return [start]
+  return o.weekPlan.slice(0, o.pkgDays).map((_, i) => isoOf(dayFromStart(start, i)))
+}
+
 export default function KitchenApp() {
   const { orders, loading, fetchOrders, updateStatus, toggleItemDone } = useOrderStore()
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all')
   const [mainTab, setMainTab] = useState<MainTab>('orders')
+  const [selectedDate, setSelectedDate] = useState<string>(todayISO())
   const [newAlert, setNewAlert] = useState(false)
   const prevCountRef = useRef(0)
 
@@ -38,9 +47,14 @@ export default function KitchenApp() {
     prevCountRef.current = newCount
   }, [orders])
 
-  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  const byStatus = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  // Chỉ giữ đơn có suất ăn trong ngày bếp đang xem
+  const filtered = byStatus.filter(o => orderDayISOs(o).includes(selectedDate))
   const countOf = (s: OrderStatus | 'all') =>
     s === 'all' ? orders.length : orders.filter(o => o.status === s).length
+
+  // Tập hợp tất cả ngày có suất ăn (từ mọi đơn) — sắp xếp tăng dần
+  const allDates = Array.from(new Set([todayISO(), ...orders.flatMap(orderDayISOs)])).sort()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,6 +97,44 @@ export default function KitchenApp() {
 
         {mainTab === 'customers' ? <CustomerList /> : (
           <>
+            {/* Chọn ngày nấu */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-semibold text-gray-500">📅 Ngày nấu</span>
+                <button
+                  onClick={() => setSelectedDate(todayISO())}
+                  className="text-[11px] text-olive-600 hover:text-olive-800 font-medium"
+                >
+                  Hôm nay
+                </button>
+              </div>
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {allDates.map(iso => {
+                  const cnt = byStatus.filter(o => orderDayISOs(o).includes(iso)).length
+                  return (
+                    <button
+                      key={iso}
+                      onClick={() => setSelectedDate(iso)}
+                      className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
+                        selectedDate === iso
+                          ? 'bg-olive-600 text-white border-olive-600'
+                          : 'bg-white text-olive-700 border-olive-200 hover:border-olive-400'
+                      }`}
+                    >
+                      {dateLabel(dayFromStart(iso, 0))}
+                      {cnt > 0 && (
+                        <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                          selectedDate === iso ? 'bg-white text-olive-700' : 'bg-olive-100 text-olive-600'
+                        }`}>
+                          {cnt}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
               {STATUS_TABS.map(tab => (
                 <button
@@ -109,8 +161,8 @@ export default function KitchenApp() {
             {filtered.length === 0 ? (
               <div className="text-center py-16 text-gray-400">
                 <p className="text-4xl mb-3">🍽️</p>
-                <p className="font-medium">Chưa có đơn hàng nào</p>
-                <p className="text-sm mt-1">Tự động cập nhật mỗi 10 giây</p>
+                <p className="font-medium">Không có đơn cần nấu cho {dateLabel(dayFromStart(selectedDate, 0))}</p>
+                <p className="text-sm mt-1">Chọn ngày khác hoặc chờ đơn mới</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
@@ -118,6 +170,7 @@ export default function KitchenApp() {
                   <OrderCard
                     key={order.id}
                     order={order}
+                    selectedDate={selectedDate}
                     onUpdateStatus={updateStatus}
                     onToggleItemDone={toggleItemDone}
                   />

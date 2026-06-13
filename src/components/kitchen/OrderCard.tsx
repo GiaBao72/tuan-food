@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import type { Order, OrderStatus, MealSlot, DayPlan } from '../../types'
 import { StatusBadge } from './StatusBadge'
-import { vnd } from '../../utils/format'
+import { vnd, planDayLabel, dayFromStart, isoOf, todayISO } from '../../utils/format'
 import { MENU } from '../../data/menu'
 import { scaleItem, itemBaseKcal } from '../../utils/nutrition'
 import { MEAL_SLOTS, MENU_TIERS } from '../../data/packages'
 
 interface OrderCardProps {
   order: Order
+  selectedDate: string   // ISO yyyy-mm-dd — ngày bếp đang xem
   onUpdateStatus: (id: number, status: OrderStatus) => void
   onToggleItemDone: (orderId: number, itemId: string) => void
 }
@@ -161,21 +162,30 @@ function DaySection({
   )
 }
 
-export function OrderCard({ order, onUpdateStatus, onToggleItemDone }: OrderCardProps) {
+export function OrderCard({ order, selectedDate, onUpdateStatus, onToggleItemDone }: OrderCardProps) {
   const next = NEXT_STATUS[order.status]
   const p = order.profile
   const doneItems = order.doneItems ?? []
+  const startISO = order.startDate ?? todayISO()
 
   // kcal/ngày theo tier khách chọn (fallback tKcal cho đơn cũ chưa có tier)
   const dayKcal = MENU_TIERS.find(t => t.key === order.tier)?.kcal ?? order.tKcal
 
-  // Danh sách ngày có món (single = 1 ngày)
-  const days: { dayIdx: number; label: string; day: DayPlan }[] =
+  // Map mỗi ngày của đơn → ISO date thật + nhãn lịch
+  const allDays: { dayIdx: number; iso: string; label: string; day: DayPlan }[] =
     order.orderMode === 'single'
-      ? [{ dayIdx: 0, label: 'Thực đơn', day: order.singleSel }]
-      : order.weekPlan.slice(0, order.pkgDays).map((day, i) => ({ dayIdx: i, label: `Ngày ${i + 1}`, day }))
+      ? [{ dayIdx: 0, iso: startISO, label: planDayLabel(startISO, 0), day: order.singleSel }]
+      : order.weekPlan.slice(0, order.pkgDays).map((day, i) => ({
+          dayIdx: i,
+          iso: isoOf(dayFromStart(startISO, i)),
+          label: planDayLabel(startISO, i),
+          day,
+        }))
 
-  // Tổng tiến độ trên tất cả suất thực (mỗi ngày-slot-món là 1 suất)
+  // Chỉ giữ ngày khớp với ngày bếp đang xem
+  const days = allDays.filter(d => d.iso === selectedDate)
+
+  // Tiến độ chỉ tính trên ngày đang xem
   let totalItems = 0, totalDone = 0
   days.forEach(({ dayIdx, day }) => {
     SLOTS.forEach(slot => day[slot].forEach(id => {
@@ -200,7 +210,7 @@ export function OrderCard({ order, onUpdateStatus, onToggleItemDone }: OrderCard
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mb-3">
         <span>Gói: <strong>{PKG_LABEL[order.pkg] ?? order.pkg}</strong></span>
         <span>Mức: <strong>{order.tier ?? '—'} ({dayKcal} kcal)</strong></span>
-        <span>{order.pkgDays} ngày</span>
+        <span>Nấu: <strong className="text-olive-600">{days[0]?.label ?? '—'}</strong></span>
       </div>
 
       {/* Progress */}
@@ -230,7 +240,7 @@ export function OrderCard({ order, onUpdateStatus, onToggleItemDone }: OrderCard
             dayKcal={dayKcal}
             doneItems={doneItems}
             onToggle={(k) => onToggleItemDone(order.id, k)}
-            defaultOpen={order.orderMode === 'single' || order.pkgDays <= 5}
+            defaultOpen={true}
           />
         ))}
         {totalItems === 0 && (

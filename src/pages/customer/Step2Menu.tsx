@@ -3,10 +3,10 @@ import { useProfileStore } from '../../store/useProfileStore'
 import { FoodCard } from '../../components/customer/FoodCard'
 import { HealthBox } from '../../components/customer/HealthBox'
 import { MENU } from '../../data/menu'
-import { PACKAGES, MEAL_SLOTS, DAYS, MENU_TIERS } from '../../data/packages'
+import { PACKAGES, MEAL_SLOTS, MENU_TIERS } from '../../data/packages'
 import type { TierKey } from '../../data/packages'
 import { scaleItem, itemBaseKcal, healthCheck, suggestTier } from '../../utils/nutrition'
-import { vnd } from '../../utils/format'
+import { vnd, todayISO, planDayLabel } from '../../utils/format'
 import type { DayPlan, MealSlot, PackageKey } from '../../types'
 
 interface Step2MenuProps {
@@ -141,14 +141,14 @@ export function Step2Menu({
 
       {orderMode === 'weekly' && (
         <div className="flex gap-1 overflow-x-auto pb-1">
-          {DAYS.slice(0, pkgObj.days).map((d, i) => (
+          {Array.from({ length: pkgObj.days }, (_, i) => (
             <button key={i}
               onClick={() => setActiveDay(i)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 activeDay === i ? 'bg-olive-600 text-white' : 'bg-cream-base text-olive-600 hover:bg-olive-100'
               }`}
             >
-              {d}
+              {planDayLabel(todayISO(), i)}
             </button>
           ))}
         </div>
@@ -207,12 +207,12 @@ export function Step2Menu({
       <div className="bg-olive-50 rounded-2xl p-4 border border-olive-100">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-olive-800">
-            🧾 Đã chọn{orderMode === 'weekly' ? ` — ${DAYS[activeDay]}` : ''}
+            🧾 Đã chọn{orderMode === 'weekly' ? ` — ${planDayLabel(todayISO(), activeDay)}` : ''}
           </h3>
           <span className="text-xs text-olive-500">{summaryItems.length} món</span>
         </div>
         {summaryItems.length === 0 ? (
-          <p className="text-xs text-olive-400 italic">Chưa chọn món nào cho {orderMode === 'weekly' ? DAYS[activeDay].toLowerCase() : 'ngày này'}.</p>
+          <p className="text-xs text-olive-400 italic">Chưa chọn món nào cho {orderMode === 'weekly' ? planDayLabel(todayISO(), activeDay).toLowerCase() : 'ngày này'}.</p>
         ) : (
           <>
             <div className="space-y-1.5">

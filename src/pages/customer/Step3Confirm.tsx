@@ -4,7 +4,7 @@ import { PACKAGES, MEAL_SLOTS, MENU_TIERS } from '../../data/packages'
 import type { TierKey } from '../../data/packages'
 import { MENU } from '../../data/menu'
 import { scaleItem, itemBaseKcal } from '../../utils/nutrition'
-import { vnd } from '../../utils/format'
+import { vnd, todayISO, planDayLabel } from '../../utils/format'
 import type { DayPlan, MealSlot, PackageKey } from '../../types'
 
 interface Step3ConfirmProps {
@@ -81,6 +81,7 @@ export function Step3Confirm({ pkg, tier, orderMode, singleSel, weekPlan, note, 
     const order = {
       id: Date.now(),
       date: new Date().toLocaleString('vi-VN'),
+      startDate: todayISO(),
       profile,
       tdee: tdee ?? 0,
       tKcal: safeKcal,
@@ -114,14 +115,14 @@ export function Step3Confirm({ pkg, tier, orderMode, singleSel, weekPlan, note, 
 
       {orderMode === 'single' ? (
         <div className="bg-cream-white rounded-2xl border border-cream-dark p-3">
-          <p className="font-semibold text-olive-700 text-sm mb-2">Đơn lẻ:</p>
+          <p className="font-semibold text-olive-700 text-sm mb-2">{planDayLabel(todayISO(), 0)}:</p>
           <DayMeals day={singleSel} dayKcal={dayKcal} />
         </div>
       ) : (
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {weekPlan.map((day, i) => (
             <div key={i} className="bg-cream-white rounded-xl border border-cream-dark p-3">
-              <p className="font-semibold text-olive-700 text-xs mb-1">Ngày {i + 1}</p>
+              <p className="font-semibold text-olive-700 text-xs mb-1">{planDayLabel(todayISO(), i)}</p>
               <DayMeals day={day} dayKcal={dayKcal} />
             </div>
           ))}
