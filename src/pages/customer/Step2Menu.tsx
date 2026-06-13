@@ -233,8 +233,25 @@ export function Step2Menu({
       {/* Tóm tắt món đã chọn */}
       <div className="bg-olive-50 rounded-2xl p-4 border border-olive-100">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-olive-800">
-            🧾 Đã chọn{orderMode === 'weekly' ? ` — ${planDayLabel(todayISO(), activeDay)}` : ''}
+          <h3 className="text-sm font-bold text-olive-800 flex items-center gap-2">
+            🧾 Đã chọn
+            {orderMode === 'weekly' && (
+              <>
+                <button
+                  onClick={() => setActiveDay(d => Math.max(0, d - 1))}
+                  disabled={activeDay === 0}
+                  className="w-6 h-6 rounded-full border border-olive-300 text-olive-600 bg-cream-white hover:bg-olive-100 disabled:opacity-30 transition-colors flex items-center justify-center"
+                  aria-label="Ngày trước"
+                >◀</button>
+                <span className="text-olive-700">{planDayLabel(todayISO(), activeDay)}</span>
+                <button
+                  onClick={() => setActiveDay(d => Math.min(pkgObj.days - 1, d + 1))}
+                  disabled={activeDay >= pkgObj.days - 1}
+                  className="w-6 h-6 rounded-full border border-olive-300 text-olive-600 bg-cream-white hover:bg-olive-100 disabled:opacity-30 transition-colors flex items-center justify-center"
+                  aria-label="Ngày sau"
+                >▶</button>
+              </>
+            )}
           </h3>
           <span className="text-xs text-olive-500">{summaryItems.length} món</span>
         </div>
