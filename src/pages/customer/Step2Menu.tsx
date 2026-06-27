@@ -3,33 +3,24 @@ import { useProfileStore } from '../../store/useProfileStore'
 import { FoodCard } from '../../components/customer/FoodCard'
 import { HealthBox } from '../../components/customer/HealthBox'
 import { MENU } from '../../data/menu'
-import { PACKAGES, MEAL_SLOTS, MENU_TIERS } from '../../data/packages'
+import { MEAL_SLOTS, MENU_TIERS } from '../../data/packages'
 import type { TierKey } from '../../data/packages'
 import { scaleItem, itemBaseKcal, healthCheck, suggestTier } from '../../utils/nutrition'
-import { vnd, todayISO, planDayLabel } from '../../utils/format'
-import type { DayPlan, MealSlot, PackageKey } from '../../types'
+import { vnd } from '../../utils/format'
+import type { DayPlan, MealSlot } from '../../types'
 
 interface Step2MenuProps {
-  pkg: PackageKey
   tier: TierKey
   onTierChange: (t: TierKey) => void
-  orderMode: 'single' | 'weekly'
-  onOrderModeChange: (m: 'single' | 'weekly') => void
   singleSel: DayPlan
   onSingleSelChange: (d: DayPlan) => void
-  weekPlan: DayPlan[]
-  onWeekPlanChange: (w: DayPlan[]) => void
 }
 
 export function Step2Menu({
-  pkg, tier: tierKey, onTierChange,
-  orderMode, onOrderModeChange,
+  tier: tierKey, onTierChange,
   singleSel, onSingleSelChange,
-  weekPlan, onWeekPlanChange,
 }: Step2MenuProps) {
   const { profile, tKcal } = useProfileStore()
-  const pkgObj = PACKAGES.find(p => p.key === pkg)!
-  const [activeDay, setActiveDay] = useState(0)
   const [activeSlot, setActiveSlot] = useState<MealSlot>('lunch')
   const [page, setPage] = useState(0)
 
@@ -38,10 +29,9 @@ export function Step2Menu({
   const tier = MENU_TIERS.find(t => t.key === tierKey) ?? suggested
   const tierKcal = tier.kcal
 
-  const health = healthCheck(profile.goal, profile.weight, '', pkgObj.days)
+  const health = healthCheck(profile.goal, profile.weight, '', 1)
 
-  const currentSel = (slot: MealSlot): string[] =>
-    orderMode === 'single' ? singleSel[slot] : weekPlan[activeDay]?.[slot] ?? []
+  const currentSel = (slot: MealSlot): string[] => singleSel[slot]
 
   const isSelected = (slot: MealSlot, id: string) => currentSel(slot).includes(id)
 
@@ -68,48 +58,31 @@ export function Step2Menu({
     })
   }
 
-  // Tóm tắt món đã chọn cho ngày đang xem (single hoặc ngày active)
-  const summaryDay: DayPlan = orderMode === 'single' ? singleSel : (weekPlan[activeDay] ?? { breakfast: [], lunch: [], dinner: [] })
+  // Tóm tắt món đã chọn
   const summaryItems = MEAL_SLOTS.flatMap(s =>
-    summaryDay[s.key].map(id => ({ slot: s.key, scaled: scaleForSlot(s.key, id) }))
+    singleSel[s.key].map(id => ({ slot: s.key, scaled: scaleForSlot(s.key, id) }))
   ).filter(x => x.scaled)
   const summaryKcal = summaryItems.reduce((sum, x) => sum + (x.scaled?.kcal ?? 0), 0)
   const summaryPrice = summaryItems.reduce((sum, x) => sum + (x.scaled?.price ?? 0), 0)
 
-  // Đề xuất ngẫu nhiên 1 món/bữa cho 1 ngày
+  // Đề xuất ngẫu nhiên 1 món/bữa
   const pickRandom = (slot: MealSlot): string[] => {
     const items = MENU[slot]
     return items.length ? [items[Math.floor(Math.random() * items.length)].id] : []
   }
-  const suggestDay = (): DayPlan => ({
-    breakfast: pickRandom('breakfast'),
-    lunch:     pickRandom('lunch'),
-    dinner:    pickRandom('dinner'),
-  })
 
   const autoFill = () => {
-    if (orderMode === 'single') {
-      onSingleSelChange(suggestDay())
-    } else {
-      const filled = weekPlan.map((day, i) => i < pkgObj.days ? suggestDay() : day)
-      onWeekPlanChange(filled)
-    }
+    onSingleSelChange({
+      breakfast: pickRandom('breakfast'),
+      lunch:     pickRandom('lunch'),
+      dinner:    pickRandom('dinner'),
+    })
   }
 
-  const toggleSingleItem = (slot: MealSlot, id: string) => {
+  const toggleItem = (slot: MealSlot, id: string) => {
     const current = singleSel[slot]
     const updated = current.includes(id) ? current.filter(x => x !== id) : [...current, id]
     onSingleSelChange({ ...singleSel, [slot]: updated })
-  }
-
-  const toggleWeekItem = (dayIdx: number, slot: MealSlot, id: string) => {
-    const newPlan = weekPlan.map((day, i) => {
-      if (i !== dayIdx) return day
-      const current = day[slot]
-      const updated = current.includes(id) ? current.filter(x => x !== id) : [...current, id]
-      return { ...day, [slot]: updated }
-    })
-    onWeekPlanChange(newPlan)
   }
 
   return (
@@ -163,23 +136,8 @@ export function Step2Menu({
         onClick={autoFill}
         className="w-full py-2.5 rounded-xl text-sm font-semibold bg-olive-100 text-olive-700 border border-olive-300 hover:bg-olive-200 transition-colors"
       >
-        ✨ Đề xuất thực đơn {orderMode === 'single' ? 'cho ngày này' : `cho cả ${pkgObj.days} ngày`}
+        ✨ Đề xuất thực đơn cho ngày này
       </button>
-
-      {orderMode === 'weekly' && (
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {Array.from({ length: pkgObj.days }, (_, i) => (
-            <button key={i}
-              onClick={() => setActiveDay(i)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                activeDay === i ? 'bg-olive-600 text-white' : 'bg-cream-base text-olive-600 hover:bg-olive-100'
-              }`}
-            >
-              {planDayLabel(todayISO(), i)}
-            </button>
-          ))}
-        </div>
-      )}
 
       <div className="flex gap-2">
         {MEAL_SLOTS.map(s => (
@@ -201,11 +159,7 @@ export function Step2Menu({
             key={item.id}
             item={item}
             selected={isSelected(activeSlot, item.id)}
-            onToggle={() =>
-              orderMode === 'single'
-                ? toggleSingleItem(activeSlot, item.id)
-                : toggleWeekItem(activeDay, activeSlot, item.id)
-            }
+            onToggle={() => toggleItem(activeSlot, item.id)}
           />
         ))}
       </div>
@@ -233,30 +187,11 @@ export function Step2Menu({
       {/* Tóm tắt món đã chọn */}
       <div className="bg-olive-50 rounded-2xl p-4 border border-olive-100">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-olive-800 flex items-center gap-2">
-            🧾 Đã chọn
-            {orderMode === 'weekly' && (
-              <>
-                <button
-                  onClick={() => setActiveDay(d => Math.max(0, d - 1))}
-                  disabled={activeDay === 0}
-                  className="w-6 h-6 rounded-full border border-olive-300 text-olive-600 bg-cream-white hover:bg-olive-100 disabled:opacity-30 transition-colors flex items-center justify-center"
-                  aria-label="Ngày trước"
-                >◀</button>
-                <span className="text-olive-700">{planDayLabel(todayISO(), activeDay)}</span>
-                <button
-                  onClick={() => setActiveDay(d => Math.min(pkgObj.days - 1, d + 1))}
-                  disabled={activeDay >= pkgObj.days - 1}
-                  className="w-6 h-6 rounded-full border border-olive-300 text-olive-600 bg-cream-white hover:bg-olive-100 disabled:opacity-30 transition-colors flex items-center justify-center"
-                  aria-label="Ngày sau"
-                >▶</button>
-              </>
-            )}
-          </h3>
+          <h3 className="text-sm font-bold text-olive-800">🧾 Đã chọn</h3>
           <span className="text-xs text-olive-500">{summaryItems.length} món</span>
         </div>
         {summaryItems.length === 0 ? (
-          <p className="text-xs text-olive-400 italic">Chưa chọn món nào cho {orderMode === 'weekly' ? planDayLabel(todayISO(), activeDay).toLowerCase() : 'ngày này'}.</p>
+          <p className="text-xs text-olive-400 italic">Chưa chọn món nào cho ngày này.</p>
         ) : (
           <>
             <div className="space-y-1.5">
@@ -279,7 +214,7 @@ export function Step2Menu({
               })}
             </div>
             <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-olive-200 text-sm">
-              <span className="font-semibold text-olive-700">Tổng {orderMode === 'weekly' ? 'ngày' : ''}: <b>{summaryKcal} kcal</b></span>
+              <span className="font-semibold text-olive-700">Tổng: <b>{summaryKcal} kcal</b></span>
               <span className="font-bold text-olive-700">{vnd(summaryPrice)}</span>
             </div>
           </>
@@ -288,3 +223,4 @@ export function Step2Menu({
     </div>
   )
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
