@@ -1,30 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --color-olive-50: #f4f9f1;
-  --color-olive-100: #e8f2e2;
-  --color-olive-200: #c4dbb8;
-  --color-olive-300: #9dc48e;
-  --color-olive-400: #7aad62;
-  --color-olive-500: #5c9448;
-  --color-olive-600: #4a7a3a;
-  --color-olive-700: #3a5e2e;
-  --color-olive-800: #2d4a24;
-  --color-olive-900: #1e2d1a;
+  /* ── Cafe palette (replaces olive) ── */
+  --color-olive-50:  #fdf8f4;
+  --color-olive-100: #f9f7f5;
+  --color-olive-200: #ede8e2;
+  --color-olive-300: #d4b896;
+  --color-olive-400: #c4a882;
+  --color-olive-500: #a08070;
+  --color-olive-600: #7d5a46;
+  --color-olive-700: #5d4432;
+  --color-olive-800: #3e2b1e;
+  --color-olive-900: #2a1a10;
 
-  --color-cream-light: #faf7f2;
-  --color-cream-base: #f5f0e8;
-  --color-cream-dark: #e8e0d0;
-  --color-cream-white: #fffef9;
+  /* ── Cream surfaces ── */
+  --color-cream-light: #f9f7f5;
+  --color-cream-base:  #fdf8f4;
+  --color-cream-dark:  #ede8e2;
+  --color-cream-white: #fffefb;
 
-  --color-amber-100: #fef3c7;
-  --color-amber-400: #fbbf24;
-  --color-amber-600: #d97706;
+  /* ── Accent gold ── */
+  --color-amber-100: #f7ecd8;
+  --color-amber-400: #d4a853;
+  --color-amber-600: #b8842a;
 
+  /* ── Alert rust ── */
   --color-rust-100: #ffedd5;
   --color-rust-600: #c2410c;
 
-  --font-serif: "Libre Baskerville", Georgia, serif;
+  /* ── Fonts ── */
+  --font-sans:  "Poppins", system-ui, sans-serif;
+  --font-serif: "Poppins", Georgia, serif;
 }
 
 * {
@@ -33,6 +39,6 @@
 
 body {
   background-color: var(--color-cream-light);
-  font-family: system-ui, sans-serif;
+  font-family: "Poppins", system-ui, sans-serif;
   margin: 0;
 }
