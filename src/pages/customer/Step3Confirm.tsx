@@ -16,6 +16,7 @@ interface Step3ConfirmProps {
   note: string
   onNoteChange: (n: string) => void
   onConfirmed: () => void
+  onBack: () => void
 }
 
 function calcDayTotal(day: DayPlan, dayKcal: number): number {
@@ -62,7 +63,7 @@ function DayMeals({ day, dayKcal }: { day: DayPlan; dayKcal: number }) {
   )
 }
 
-export function Step3Confirm({ pkg, tier, orderMode, singleSel, weekPlan, note, onNoteChange, onConfirmed }: Step3ConfirmProps) {
+export function Step3Confirm({ pkg, tier, orderMode, singleSel, weekPlan, note, onNoteChange, onConfirmed, onBack }: Step3ConfirmProps) {
   const { profile, tdee, tKcal } = useProfileStore()
   const { addOrder } = useOrderStore()
   const pkgObj = PACKAGES.find(p => p.key === pkg)!
@@ -157,12 +158,20 @@ export function Step3Confirm({ pkg, tier, orderMode, singleSel, weekPlan, note, 
         </div>
       </div>
 
-      <button
-        onClick={handleOrder}
-        className="w-full bg-olive-600 text-white font-bold py-4 rounded-2xl text-base hover:bg-olive-700 transition-colors shadow-md"
-      >
-        Đặt hàng ngay
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={onBack}
+          className="flex-1 border border-olive-300 text-olive-700 font-semibold py-4 rounded-2xl text-base hover:bg-olive-50 transition-colors"
+        >
+          ← Quay lại
+        </button>
+        <button
+          onClick={handleOrder}
+          className="flex-[2] bg-olive-600 text-white font-bold py-4 rounded-2xl text-base hover:bg-olive-700 transition-colors shadow-md"
+        >
+          Đặt hàng ngay
+        </button>
+      </div>
     </div>
   )
 }
